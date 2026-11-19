@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>OutToday</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; background:#0D1B33; color:#EAF1FF; font:17px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:28px 20px 40px; }
+  .brand { font-weight:800; font-size:22px; color:#EAF1FF; text-decoration:none; }
+  .card { margin-top:22px; background:#1C3A7A; border-radius:18px; padding:20px; }
+  .pill { display:inline-block; border:1.5px solid currentColor; border-radius:999px; padding:2px 12px; font-size:13px; font-weight:700; color:#A9C6FF; margin-bottom:10px; }
+  h1 { font-size:26px; line-height:1.2; margin:0 0 12px; }
+  .row { margin:6px 0; color:#B7CEFF; }
+  .row b { color:#EAF1FF; font-weight:600; }
+  .desc { margin-top:14px; color:#DCE6FA; }
+  .btn { display:block; text-align:center; text-decoration:none; font-weight:700; border-radius:14px; padding:14px; margin-top:12px; }
+  .main { background:#8FB4FF; color:#0D1B33; }
+  .ghost { border:1.5px solid #8FB4FF; color:#8FB4FF; }
+  .note { color:#9FB3D6; font-size:14px; text-align:center; margin-top:18px; }
+  .err { color:#FFB3B6; }
+</style>
+</head>
+<body>
+<main>
+  <a class="brand" href="index.html">OutToday</a>
+  <div id="box" class="card"><p class="row">Loading…</p></div>
+  <a id="open" class="btn main" href="#" hidden>Open in the OutToday app</a>
+  <a id="official" class="btn ghost" href="#" hidden target="_blank" rel="noopener">Official page &amp; tickets</a>
+  <p class="note">OutToday shows what's on across the UAE today: events, places and deals.<br>Coming soon to Google Play and the App Store.</p>
+</main>
+<script>
+// Strona udostępnionego eventu / miejsca / oferty: ?id=event:<uuid> (place:, deal:).
+// Dane z tej samej publicznej bazy co apka (klucz publiczny – tylko zatwierdzone wpisy, jeden wpis na raz).
+const URL_ = 'https://ibpuispeimyyqiailjfy.supabase.co';
+const APP_LINKS = false;
+const KEY = 'sb_publishable_2SPY_zl7rAw7K5D1T2TzwQ_mxpzYrCS';
+const box = document.getElementById('box');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const hm = (t) => t ? t.slice(0, 5) : '';
+const LABEL = { music: 'Music & Shows', culture: 'Culture & Art', sport: 'Sport & Fitness', food: 'Food & Drinks', festivals: 'Festivals',
+  nightlife: 'Nightlife', classes: 'Classes & Workshops', nature: 'Nature & Outdoors', community: 'Community', family: 'Family', market: 'Markets',
+  beaches: 'Beaches & Pools', parks: 'Parks & Nature', museums: 'Museums & Culture', attractions: 'Attractions', active: 'Sport & Active',
+  kids: 'Kids & Play', markets: 'Markets & Malls', studios: 'Classes & Studios', daytrips: 'Day Trips',
+  day_pass: 'Day pass', brunch: 'Brunch', ladies_night: "Ladies' night", happy_hour: 'Happy hour', night_out: 'Night out',
+  lunch: 'Business lunch', dinner: 'Dinner deal', quiz: 'Quiz night', breakfast: 'Breakfast', staycation: 'Staycation' };
+const TABLE = { event: ['events', 'title,category,start_date,end_date,start_time,end_time,venue,area,city,price_text,is_free,description,official_url,url'],
+  place: ['places', 'name,category,area,city,hours_text,price_text,is_free,description,official_url'],
+  deal: ['deals', 'title,deal_type,venue,area,city,price_text,details,start_time,end_time,official_url'] };
+
+(async () => {
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const m = id.match(/^(event|place|deal):([0-9a-f-]{36})$/);
+  if (!m) { box.innerHTML = '<p class="err">This link is not complete.</p>'; return; }
+  const [table, cols] = TABLE[m[1]];
+  try {
+    const r = await fetch(`${URL_}/rest/v1/${table}?id=eq.${m[2]}&status=eq.approved&select=${cols}&limit=1`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
+    const x = (await r.json())[0];
+    if (!x) { box.innerHTML = '<p class="err">This listing is no longer available.</p>'; return; }
+    const title = x.title || x.name;
+    document.title = `${title} – OutToday`;
+    const where = [x.venue, x.area, x.city].filter(Boolean).join(' · ');
+    let when = '';
+    if (m[1] === 'event') {
+      when = fmt(x.start_date) + (x.end_date && x.end_date !== x.start_date ? ' – ' + fmt(x.end_date) : '');
+      if (x.start_time) when += ' · ' + hm(x.start_time) + (x.end_time ? '–' + hm(x.end_time) : '');
+    } else if (m[1] === 'place') when = x.hours_text || '';
+    else if (x.start_time) when = hm(x.start_time) + (x.end_time ? '–' + hm(x.end_time) : '');
+    const price = x.is_free ? (x.price_text || 'Free') : x.price_text;
+    box.innerHTML = `<span class="pill">${esc(LABEL[x.category || x.deal_type] || 'OutToday')}</span>
+      <h1>${esc(title)}</h1>
+      ${when ? `<p class="row"><b>When</b> ${esc(when)}</p>` : ''}
+      ${where ? `<p class="row"><b>Where</b> ${esc(where)}</p>` : ''}
+      ${price ? `<p class="row"><b>Price</b> ${esc(price)}</p>` : ''}
+      ${(x.description || x.details) ? `<p class="desc">${esc(x.description || x.details)}</p>` : ''}`;
+    const off = x.official_url || x.url;
+    if (off && /^https?:\/\//.test(off)) { const a = document.getElementById('official'); a.href = off; a.hidden = false; }
+    // Przycisk "Open in the app" włączymy po nowej wersji apki ze schematem outtoday:// (wymaga nowego builda).
+    const open = document.getElementById('open'); open.href = `outtoday://item?id=${encodeURIComponent(id)}`; open.hidden = !APP_LINKS;
+  } catch {
+    box.innerHTML = '<p class="err">Could not load this listing. Check your connection.</p>';
+  }
+})();
+</script>
+</body>
+</html>
