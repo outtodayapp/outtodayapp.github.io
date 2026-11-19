@@ -18,7 +18,7 @@ jobs:
         with: { repository: bartoszmarcinkosek/outtoday-bots, path: bots }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install requests && python bots/bot/site_pages.py .
+      - run: pip install requests pillow && python bots/bot/site_pages.py .
       - run: |
           rm -rf bots
           git config user.name "OutToday bot" && git config user.email "noreply@outtodayapp.github.io"
