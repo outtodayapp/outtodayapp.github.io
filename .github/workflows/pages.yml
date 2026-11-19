@@ -22,5 +22,5 @@ jobs:
       - run: |
           rm -rf bots
           git config user.name "OutToday bot" && git config user.email "noreply@outtodayapp.github.io"
-          git add -A e img
+          git add -A e img index.html
           git diff --cached --quiet || (git commit -qm "Strony wpisów: aktualizacja" && git push -q)
