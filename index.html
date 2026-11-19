@@ -29,10 +29,16 @@
   .ev b { font-size:16px; } .ev small { color:#B7CEFF; font-size:13px; }
   .app { margin-top:26px; background:#14284D; border-radius:14px; padding:16px; text-align:center; color:#B7CEFF; }
   footer { margin-top:20px; text-align:center; font-size:14px; color:#9FB3D6; } footer a { color:#8FB4FF; }
+  .getapp { display:flex; align-items:center; gap:12px; background:#14284D; border:1.5px solid #3A5A9A; border-radius:14px; padding:10px 12px; margin:0 0 18px; }
+  .getapp img { width:44px; height:44px; border-radius:10px; flex:none; }
+  .getapp div { flex:1; min-width:0; font-size:14px; color:#B7CEFF; } .getapp b { color:#EAF1FF; display:block; font-size:15px; }
+  .getapp a { flex:none; background:#8FB4FF; color:#0D1B33; font-weight:700; text-decoration:none; border-radius:10px; padding:8px 12px; font-size:14px; }
+  .getapp .soon { flex:none; color:#9FB3D6; font-size:13px; font-weight:600; }
 </style>
 </head>
 <body>
 <main>
+  <div class="getapp"><img src="apple-touch-icon.png" alt="OutToday app"><div><b>OutToday app</b>Everything on today across the UAE</div><span class="soon">Coming soon</span></div>
   <h1>What's on in the UAE today</h1>
   <p class="date">Thursday 19 November 2026 · the top picks for today and this weekend</p>
   <nav class="tabs"><button data-c="dubai" class=on>Dubai</button><button data-c="abu-dhabi">Abu Dhabi</button><button data-c="sharjah">Sharjah</button><button data-c="al-ain">Al Ain</button><button data-c="ras-al-khaimah">Ras Al Khaimah</button><button data-c="ajman">Ajman</button><button data-c="fujairah">Fujairah</button></nav>
